@@ -1,19 +1,15 @@
 {% extends "ArtiFolio/base.html" %}
 {% load static %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/style_profile.css' %}">
-{% endblock %}
-
 {% block contenido %}
 
-<div class="user-details-container">
+<div class="container-card">
     <h2>User Details</h2>
     <div class="user-info">
         <p><strong>Username:</strong> {{ user.username }}</p>
         <p><strong>Email:</strong> {{ user.email }}</p>
     </div>
-    <a href="{% url 'edit_profile' %}" class="btn-primary btn-dark">Edit Profile</a>
-    <a href="{% url 'artwork_list' %}">Back to Gallery</a>
+    <a href="{% url 'edit_profile' %}" class="btn btn-primary">Edit Profile</a>
+    <a href="{% url 'artwork_list' %}" class="btn-link">Back to Gallery</a>
 </div>
 {% endblock contenido %}

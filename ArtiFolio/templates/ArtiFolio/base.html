@@ -1,19 +1,39 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>{% block titulo %}ArtiFolio{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style_base.css' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
-    
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% block extra_css %}{% endblock %}
-    <title>{% block titulo%} App {% endblock%}</title>
 </head>
-
 <body>
+
+    <nav class="main-navbar">
+        <div class="nav-brand">
+            <a href="{% url 'artwork_list' %}">🎨 ArtiFolio</a>
+        </div>
+        <div class="nav-links">
+            {% if user.is_authenticated %}
+                <span class="user-welcome">Hello, <strong>{{ user.username }}</strong></span>
+                <a href="{% url 'artwork_list' %}" class="nav-item">Gallery</a>
+                <a href="{% url 'artwork_create' %}" class="nav-item">Upload Art</a>
+                <a href="{% url 'global_stats' %}" class="nav-item">Stats</a>
+                <a href="{% url 'user_details' user.id %}" class="nav-item">My Profile</a>
+                <form action="{% url 'logout' %}" method="post" class="inline-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-nav-logout">Logout</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}" class="nav-item">Login</a>
+                <a href="{% url 'register' %}" class="btn-cta">Sign Up</a>
+            {% endif %}
+        </div>
+    </nav>
+
     {% if messages %}
     <div class="messages-container">
         {% for message in messages %}
@@ -22,8 +42,12 @@
             </div>
         {% endfor %}
     </div>
-{% endif %}
-    {% block contenido %}{% endblock %}
-    </body>
+    {% endif %}
 
+    <main class="main-wrapper">
+        {% block contenido %}
+        {% endblock contenido %}
+    </main>
+
+</body>
 </html>

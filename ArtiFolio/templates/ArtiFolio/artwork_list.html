@@ -1,31 +1,22 @@
 {% extends "ArtiFolio/base.html" %}
 
-{% block titulo %}Artworks list{% endblock %}
+{% block titulo %}Art Gallery{% endblock %}
 
 {% block contenido %}
-<nav>
-    {% if user.is_authenticated %}
-        <span>Hola, {{ user.username }}</span>
-        <form action="{% url 'logout' %}" method="post" class="form-inline">
-            {% csrf_token %}
-            <button type="submit">Log out</button>
-        </form>
-        <a href="{% url 'user_details' user.id %}">My Profile</a>
-    {% else %}
-        <a href="{% url 'login' %}">Log in</a>
-    {% endif %}
-</nav>
-
 <div class="main-container">
 
     <div class="challenges-section">
-        <h3>My pending challenges</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0;">🎯 My Pending Challenges</h3>
+            <a href="{% url 'challenge_create' %}" class="btn-small" style="text-decoration: none; background-color: var(--color-primary); color: white;">+ New Challenge</a>
+        </div>
+
         {% if challenges %}
             <ul>
                 {% for challenge in challenges %}
                     <li>
                         <span>{{ challenge.text }}</span>
-                        <form method="post" action="{% url 'challenge_complete' challenge.id %}" class="form-inline">
+                        <form method="post" action="{% url 'challenge_complete' challenge.id %}" style="margin: 0;">
                             {% csrf_token %}
                             <button type="submit" name="complete" class="btn-small">Completed</button>
                         </form>
@@ -33,77 +24,89 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <p>You have no pending challenges!</p>
+            <p style="color: #666; font-style: italic;">You have no pending challenges! Create a new one to get motivated.</p>
         {% endif %}
-        
-        <div class="challenge-create-wrapper">
-            <a href="{% url 'challenge_create' %}" class="btn-link">Create a new challenge</a>
-        </div>
     </div>
 
     <div class="filter-section">
         <div class="filter-header">
-            <h3>🔍 Filter Gallery</h3>
+            <h3>🔍 Filter Artworks</h3>
         </div>
+        
         <form method="get" class="filter-form">
             <div class="filter-group">
-                <label>Title</label>
+                {{ filter_form.title.label_tag }}
                 {{ filter_form.title }}
             </div>
             <div class="filter-group">
-                <label>Technique</label>
+                {{ filter_form.technique.label_tag }}
                 {{ filter_form.technique }}
             </div>
             <div class="filter-group">
-                <label>Month</label>
+                {{ filter_form.start_month.label_tag }}
                 {{ filter_form.start_month }}
             </div>
             <div class="filter-group">
-                <label>Year</label>
+                {{ filter_form.start_year.label_tag }}
                 {{ filter_form.start_year }}
             </div>
             
-            <div class="filter-actions">
+            <div style="width: 100%; display: flex; gap: 10px; margin-top: 10px;">
                 <button type="submit" class="btn-primary">Apply Filters</button>
-                <a href="{% url 'artwork_list' %}" class="btn-secondary">Clear</a>
+                <a href="{% url 'artwork_list' %}" class="btn-secondary" style="padding: 12px 20px; background: #ddd; color: #333; text-decoration: none; border-radius: 8px;">Clear</a>
             </div>
         </form>
     </div>
     
     <div class="header-section">
-        <h2>Gallery</h2>
-        <a href="{% url 'artwork_create' %}" class="btn-primary">Upload new artwork</a>
+        <h2>My Gallery</h2>
+        <a href="{% url 'artwork_create' %}" class="btn-primary">New Artwork +</a>
     </div>
 
     <div class="artwork-grid">
         {% for artwork in artworks %}
         <div class="artwork-card">
             <div class="image-container">
-                <img src="{{ artwork.final_image.url }}" alt="{{ artwork.title }}">
+                {% if artwork.final_image %}
+                    <img src="{{ artwork.final_image.url }}" alt="{{ artwork.title }}">
+                {% else %}
+                    <div style="height:100%; display:flex; align-items:center; justify-content:center; background:#eee; color:#aaa;">No Image</div>
+                {% endif %}
             </div>
+            
             <div class="card-info">
                 <h5>{{ artwork.title }}</h5>
-                <p>{{ artwork.description|truncatechars:50 }}</p>
-                <p>Progress photo: {{ artwork.num_photos }}</p>
-                <a href="{% url 'artwork_detail' artwork.id %}">View details</a>
+                <p style="font-size: 0.9em; color: #666;">
+                    {{ artwork.description|truncatechars:50 }}
+                </p>
+                
+                <div style="margin-top: 10px; font-size: 0.85em; color: var(--color-accent);">
+                    📷 Process photos: {{ artwork.num_photos }}
+                </div>
+
+                <a href="{% url 'artwork_detail' artwork.id %}" class="btn-primary" style="display: block; text-align: center; margin-top: 15px;">View Details</a>
             </div>
         </div>
+        {% empty %}
+            <p>No artworks match your search or you haven't uploaded any yet.</p>
         {% endfor %}
     </div>
 
-    <div class="pagination">
+    <div class="pagination" style="margin-top: 40px; text-align: center;">
         {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.title %}&title={{ request.GET.title }}{% endif %}" class="btn-small">Previous</a>
         {% endif %}
 
-        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        <span style="margin: 0 15px;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
 
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">Next</a>
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.title %}&title={{ request.GET.title }}{% endif %}" class="btn-small">Next</a>
         {% endif %}
     </div>
 
-    <a href="{% url 'global_stats' %}" class="btn-primary btn-dark artwork-list-footer-btn">View statistics</a>
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="{% url 'global_stats' %}" class="btn-primary" style="background-color: var(--color-secondary);">View My Statistics</a>
+    </div>
 
 </div>
 {% endblock contenido %}

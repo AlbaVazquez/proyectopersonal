@@ -1,85 +1,93 @@
 {% extends "ArtiFolio/base.html" %}
 
-{% block titulo%}Artwork detail{% endblock%}
+{% block titulo %}{{ artwork.title }} - Details{% endblock %}
 
 {% block contenido %}
-<div class="container">
-    <div class="card">
-        <img src="{{ artwork.final_image.url }}" alt="{{ artwork.title }}">
-        <div class="card-body">
-            <h5>{{ artwork.title }}</h5>
-            <p>{{ artwork.description }}</p>
+<div class="main-container">
 
+    <div class="artwork-detail-container">
+
+        {% if artwork.final_image %}
+            <img src="{{ artwork.final_image.url }}" alt="{{ artwork.title }}" class="main-detail-image">
+        {% endif %}
+
+        <h2 style="font-family: var(--font-heading); color: var(--color-primary); margin-bottom: 10px;">{{ artwork.title }}</h2>
+        <p style="font-size: 1.1em; line-height: 1.8; color: #555;">{{ artwork.description }}</p>
+
+        {% if artwork.video_timelapse %}
+            <div style="margin: 30px 0; padding: 20px; background: #f0f0f0; border-radius: 10px;">
+                <h4 style="margin-top: 0; margin-bottom: 15px;">🎥 Timelapse Video</h4>
+                <video width="100%" controls style="border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    <source src="{{ artwork.video_timelapse.url }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        {% endif %}
+
+        <div style="background: #f9f9f9; padding: 15px; border-radius: 10px; margin: 20px 0;">
+            <p><strong>Technique:</strong> {{ artwork.get_technique_display }}</p>
             {% if artwork.start_date %}
-                <li class="date-item">
-                    <strong>Start date:</strong> {{ artwork.start_date|date:"d M Y" }}
-                </li>
+                <p><strong>Start Date:</strong> {{ artwork.start_date }}</p>
             {% endif %}
-                    
             {% if artwork.end_date %}
-                <li class="date-item">
-                    <strong>End date:</strong> {{ artwork.end_date|date:"d M Y" }}
-                </li>
+                <p><strong>End Date:</strong> {{ artwork.end_date }}</p>
             {% endif %}
-
-            {% if artwork.video_timelapse %}
-            <h6>Timelapse video:</h6>
-            <video width="100%" controls>
-                <source src="{{ artwork.video_timelapse.url }}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-            {% endif %}
-
-            {% if progress_photos %}
-            <h6>Progress photo:</h6>
-            <div class="row">
-                {% for photo in progress_photos %}
-                <div class="col">
-                    <img src="{{ photo.image.url }}" alt="Progreso {{ photo.order }}">
+            
+            {% if user == artwork.user %}
+                <div style="margin-top: 15px;">
+                    <a href="{% url 'artwork_update' artwork.id %}" class="btn-primary" style="padding: 8px 15px; font-size: 0.9em;">Edit</a>
+                    <a href="{% url 'artwork_delete' artwork.id %}" class="btn-primary" style="background-color: var(--color-danger); padding: 8px 15px; font-size: 0.9em;">Delete</a>
                 </div>
+            {% endif %}
+        </div>
+
+        {% if artwork.progressphoto_set.all %}
+            <h3 style="margin-top: 30px; border-bottom: 2px solid #eee; padding-bottom: 10px;">📸 Process Photos</h3>
+            <div class="process-photos-grid">
+                {% for photo in artwork.progressphoto_set.all %}
+                    <img src="{{ photo.image.url }}" alt="Process photo" class="process-photo-item">
                 {% endfor %}
             </div>
-            {% endif %}
-        </div>
-        <div class="container">
-            <a href="{% url 'artwork_update' artwork.id %}">Edit</a>
-            <a href="{% url 'artwork_delete' artwork.id %}">Delete</a>
-        </div>
-    </div>
+        {% endif %}
+
+    </div> 
     
-    <a href="{% url 'artwork_list' %}">← Return to gallery</a>
-</div>
+    <div class="artwork-detail-container" style="margin-top: 30px;">
+        <h3>💬 Private Comments</h3>
+        
+        {% if private_comments %}
+            {% for comment in private_comments %}
+            <div style="background: #fff; border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 8px;"> 
+                <div style="display: flex; justify-content: space-between; font-size: 0.85em; color: #888; margin-bottom: 5px;">
+                    <strong>{{ comment.user.username }}</strong>
+                    <span>{{ comment.created_at|date:"d M Y H:i" }}</span>
+                </div>
+                
+                <p style="margin: 0;">{{ comment.text }}</p>
 
-<div class="container comments-section"> 
-    <h4>Private comments</h4>
-    {% if private_comments %}
-        {% for comment in private_comments %}
-        <div class="comment-box"> 
-            <div class="comment-meta">
-                <strong>{{ comment.user.username }}</strong> ({{ comment.created_at|date:"d M Y H:i" }}):
+                {% if request.user == comment.user %}
+                    <form action="{% url 'delete_private_comment' comment.id %}" method="post" style="text-align: right; margin-top: 5px;">
+                        {% csrf_token %}
+                        <button type="submit" style="background: none; border: none; color: var(--color-danger); cursor: pointer; font-size: 0.8em;">Delete</button>
+                    </form>
+                {% endif %}
             </div>
-            
-            <p>{{ comment.text }}</p>
+            {% endfor %}
+        {% else %}
+            <p style="color: #888; font-style: italic;">No private comments yet.</p>
+        {% endif %}
 
-            {% if request.user == comment.user %}
-                <form action="{% url 'delete_private_comment' comment.id %}" method="post" class="delete-comment-form">
-                    {% csrf_token %}
-                    <button type="submit" title="Delete comment"> ✕ </button>
-                </form>
-            {% endif %}
+        <h5 style="margin-top: 20px;">Add a comment</h5>
+        <form method="post" action="{% url 'add_private_comment' artwork.id %}">
+            {% csrf_token %}
+            {{ comment_form.as_p }}
+            <button type="submit" class="btn-primary" style="margin-top: 10px;">Post Comment</button>
+        </form>
+    </div>
 
-        </div>
-        {% endfor %}
-    {% else %}
-        <p>There are no private comments yet.</p>
-    {% endif %}
+    <div style="text-align: center; margin: 40px 0;">
+        <a href="{% url 'artwork_list' %}" style="text-decoration: none; color: var(--color-primary); font-weight: bold;">← Return to Gallery</a>
+    </div>
 
-    <h5>Add comment</h5>
-    <form method="post" action="{% url 'add_private_comment' artwork.id %}">
-        {% csrf_token %}
-        {{ comment_form.as_p }}
-        <button type="submit">Save comment</button>
-    </form>
 </div>
-<a href="{% url 'artwork_list' %}">Return to list</a>
 {% endblock contenido %}
