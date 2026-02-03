@@ -14,4 +14,7 @@ urlpatterns = [
     path('challenges/<int:pk>/complete/', views.challenge_complete, name='challenge_complete'),
     path('comments/<int:pk>/delete/', views.delete_private_comment, name='delete_private_comment'),
     path('stats/', views.GlobalStatsView.as_view(), name='global_stats'),
+    path('accounts/profile/edit/', views.UserUpdateView.as_view(), name='edit_profile'),
+    path('accounts/profile/<int:pk>/', views.UserDetailsView.as_view(), name='user_details'),
+    path('accounts/register/', views.UserCreateView.as_view(), name='register'),
 ]

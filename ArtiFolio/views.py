@@ -1,6 +1,6 @@
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.shortcuts import redirect, get_object_or_404
-from .models import Artwork, Challenge, ProgressPhoto, PrivateComment
+from .models import Artwork, Challenge, ProgressPhoto, PrivateComment, User
 from .forms import ArtworkFilterForm, PrivateCommentForm, ArtworkForm, ProgressPhotoFormSet, ChallengeForm
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -176,3 +176,31 @@ def challenge_complete(request, pk):
             challenge.delete() 
             messages.success(request, 'Challenge completed! Great job.')
     return redirect('artwork_list')
+
+class UserDetailsView(LoginRequiredMixin, DetailView):
+    template_name = "registration/user_details.html"
+    context_object_name = "usuario"
+    model = User
+    
+class UserCreateView(CreateView):
+    template_name = "registration/user_create.html"
+    model = User
+    fields = ['username', 'email', 'password']
+    success_url = reverse_lazy('login')
+    
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.set_password(form.cleaned_data['password'])
+        user.save()
+        return redirect(self.success_url)
+    
+class UserUpdateView(LoginRequiredMixin, UpdateView):
+    template_name = "registration/user_update.html"
+    model = User
+    fields = ['username', 'email']
+    success_url = reverse_lazy('artwork_list')
+    
+    def get_object(self, queryset=None):
+        return self.request.user
+    
+    
