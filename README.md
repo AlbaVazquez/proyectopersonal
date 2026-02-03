@@ -24,7 +24,7 @@
 **Linux:** `pip install -r requirements.txt`
 **Windows:** `pip install -r .\requirements.txt`
 
-### Launch the database container (Linux/Windows)
+### Launch the database container (Linux/Windows) **ONLY WHEN USING PostgreSQL**
 `docker-compose up -d`
 
 ### Start the server (Linux/Windows)
